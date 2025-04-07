@@ -5,6 +5,15 @@
 설명 : select, where, order by등 가장 기본적인 DQL문 사용해보기
 */
 
+/*
+구분	     :   SELECT * FROM	            SELECT
+조회 범위  :   모든 컬럼 조회	          특정 컬럼 조회
+성능:	     느릴 가능성 있음             성능 우수
+        (불필요한 데이터 포함 시)	   (필요한 데이터만 조회)
+사용       전체 데이터 확인 시
+용도	        임시 테스트용            필요한 컬럼만 조회할 때
+가독성	테이블 구조를 모를 때 유용	    가독성 좋음 (명시적)
+*/
 
 
 /*
@@ -200,3 +209,68 @@ select * from employees where commission_pct is null;
 --영업사원이면서 급여가 8000이상인 사원을 조회하시오.
 select * from employees where salary>=8000
     and commission_pct is not null;
+    
+------------------------------------------------------------------------------
+--Scott계정사용 주말과제
+
+--1. 덧셈 연산자를 이용하여 모든 사원에 대해서 $300의 급여인상을 계산한후 이름, 급여, 인상된 급여를 출력하시오.
+select empno, ename, sal, sal+300 as "급여증가" from emp;
+
+--2. 사원의 이름, 급여, 연봉을 수입이 많은것부터 작은순으로 출력하시오. 연봉은 월급에 12를 곱한후 $100을 더해서 계산하시오.
+select ename, sal, (sal*12 + 100) as "연봉" from emp order by sal desc;
+select ename, sal, (sal*12 + 100) as "연봉" from emp order by '연봉' desc;
+
+--3. 급여가  2000을 넘는 사원의 이름과 급여를 내림차순으로 정렬하여 출력하시오
+select ename, sal from emp where sal>2000 order by ename desc, sal desc;
+
+--4. 사원번호가  7782인 사원의 이름과 부서번호를 출력하시오.
+-- empno는 숫자타입이고 like'%__%'는 문자열패턴비교, 쓰게된다면 7782를 포함한 모든숫자이기때문에 안됨
+select empno, ename, deptno from emp where empno like '%7782%';
+select empno, ename, deptno from emp where empno = 7782;
+
+--5. 급여가 2000에서 3000사이에 포함되지 않는 사원의 이름과 급여를 출력하시오.
+select ename, sal from emp where not (sal>=2000 and sal<=3000);
+select ename, sal from emp where not (sal between 2000 and 3000);
+
+--6. 입사일이 81년2월20일 부터 81년5월1일 사이인 사원의 이름, 담당업무, 입사일을 출력하시오.
+select ename, job, hiredate from emp where hiredate between '81/02/20' and '81/05/01';
+select ename, job, hiredate from emp where hiredate>='81/02/20' and hiredate<='81/05/01';
+
+--7. 부서번호가 20 및 30에 속한 사원의 이름과 부서번호를 출력하되 이름을 기준(내림차순)으로 출력하시오
+select ename, deptno from emp where deptno in (20,30) order by ename desc;
+select ename, deptno from emp where deptno=20 or deptno=30 order by ename desc;
+
+--8. 사원의 급여가 2000에서 3000사이에 포함되고 부서번호가 20 또는 30인 사원의 이름, 급여와 부서번호를 출력하되 이름순(오름차순)으로 출력하시오
+-- '사이에 포함되고'이기 때문에 and  사용 그리고 between 2000 and 3000으로 바꾼다.
+select * from emp where sal in (2000,3000) or deptno in(20,30) order by ename asc;
+select ename, sal, deptno from emp where (sal between 2000 and 3000) and deptno in(20,30) order by ename asc;
+
+
+--9. 1981년도에 입사한 사원의 이름과 입사일을 출력하시오. (like 연산자와 와일드카드 사용)
+--hiredate는 date타입이기때문에 문자열로 비교하면 잘 작동하지않음 
+select * from emp where hiredate like '%81/__/__%';
+select ename, hiredate from emp where to_char(hiredate, 'yy') like '81';
+select ename, hiredate from emp where hiredate like '81%';
+
+--10. 관리자가 없는 사원의 이름과 담당업무를 출력하시오. 
+select * from emp where mgr is null;
+
+--11. 커미션을 받을수 있는 자격이 되는 사원의 이름, 급여, 커미션을 출력하되 급여 및 커미션을 기준으로 내림차순으로 정렬하여 출력하시오.
+-- 급여 및 커미션을 기준이기때문에 sal도 내림차순을 넣어줘야함 동시에 내림가능
+select ename, sal, comm from emp where comm is not null order by comm desc;
+select ename, sal, comm from emp where comm is not null order by sal desc, comm desc;
+
+--12. 이름의 세번째 문자가 R인 사원의 이름을 표시하시오.
+select * from emp where ename like '__R%';
+
+--13. 이름에 A와 E를 모두 포함하고 있는 사원의 이름을 표시하시오.
+-- '%A%E%' 는 우선순위가 생기게 되므로 제데로 검색이 잘 안될수도있다.
+select * from emp where ename like '%A%' and ename like '%E%';
+
+
+--14. 담당업무가 사무원(CLERK) 또는 영업사원(SALESMAN)이면서 급여가 $1600, $950, $1300 이 아닌 사원의 이름, 담당업무, 급여를 출력하시오. 
+select ename, job, sal from emp where not (job='CLERK' or job='SALESMAN' or sal=1600 or sal=1300 or sal=950);
+
+
+--15. 커미션이 $500 이상인 사원의 이름과 급여 및 커미션을 출력하시오. 
+select ename, sal, comm from emp where comm>=500;
